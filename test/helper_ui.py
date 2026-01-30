@@ -1820,10 +1820,14 @@ class ui_class():
             if key == 'pubdate':
                 continue
             ele = cls.check_element_on_page((By.ID, key))
-            ele.send_keys(Keys.CONTROL, "a")
-            ele.send_keys(Keys.DELETE)
+            ele.clear()
+            if ele.get_attribute('value') != '':
+                cls.driver.execute_script("arguments[0].value = ''", ele)
+                cls.driver.execute_script("arguments[0].dispatchEvent(new Event('input', {bubbles: true}));", ele)
+                cls.driver.execute_script("arguments[0].dispatchEvent(new Event('change', {bubbles: true}));", ele)
             if ele.get_attribute('value') != '':
                 print("clear didn't work")
+            time.sleep(0.2)
             ele.send_keys(content[key])
 
         if 'pubdate' in content:

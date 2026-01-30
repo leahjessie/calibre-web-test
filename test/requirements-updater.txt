@@ -1,0 +1,5 @@
+# Updater tests (mitmproxy 6.0.2 pins Flask old)
+flask>=1.1.1,<1.2
+mitmproxy==6.0.2
+protobuf<=3.20.0
+blinker<1.5.0

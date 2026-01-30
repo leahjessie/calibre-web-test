@@ -34,3 +34,6 @@ selenium
 *.crt
 *.cert.pem
 /build/config.py
+
+#pyenv virtualenv setup
+.python-version

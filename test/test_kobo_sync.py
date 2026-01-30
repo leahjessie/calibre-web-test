@@ -46,7 +46,10 @@ class TestKoboSync(unittest.TestCase, ui_class):
             cls.check_element_on_page((By.ID, "config_create_kobo_token")).click()
             time.sleep(1)
             link = cls.check_element_on_page((By.CLASS_NAME, "well"))
-            cls.kobo_adress = host + ':' + PORTS[0] + '/kobo/' + re.findall(".*/kobo/(.*)", link.text)[0]
+            matches = re.findall(".*/kobo/(.*)", link.text)
+            if not matches:
+                raise AssertionError("Kobo token not found in modal text: " + link.text)
+            cls.kobo_adress = host + ':' + PORTS[0] + '/kobo/' + matches[0]
             cls.check_element_on_page((By.ID, "kobo_close")).click()
             cls.driver.get("http://127.0.0.1:" + PORTS[0])
             cls.login('admin', 'admin123')
@@ -281,10 +284,15 @@ class TestKoboSync(unittest.TestCase, ui_class):
         upload_file = os.path.join(base_path, 'files', 'book.epub')
         upload = self.check_element_on_page((By.ID, 'btn-upload'))
         upload.send_keys(upload_file)
-        time.sleep(2)
 
         # append synctoken to headers and start over again
-        data = self.sync_kobo()
+        data = []
+        for _ in range(10):
+            data = self.sync_kobo()
+            if len(data):
+                break
+            time.sleep(3)
+        self.assertTrue(len(data), "Upload did not sync in time")
         self.assertEqual(1, len(data))
         self.assertEqual(['Noname 23'], data[0]['NewEntitlement']['BookMetadata']['Contributors'])
         self.assertEqual('book9', data[0]['NewEntitlement']['BookMetadata']['Title'])
@@ -367,7 +375,13 @@ class TestKoboSync(unittest.TestCase, ui_class):
         self.check_element_on_page((By.ID, "add-to-shelf")).click()
         self.check_element_on_page((By.XPATH, "//ul[@id='add-to-shelves']/li/a[contains(.,'privateShelf')]")).click()
         # ToDo works by change, because old entry is first one, click is independent of text
-        self.check_element_on_page((By.XPATH, "//*[@id='remove-from-shelves']//a")).click()
+        self.check_element_on_page((By.XPATH, "//*[@id='remove-from-shelves']//a[contains(.,'adminShelf')]")).click()
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.invisibility_of_element_located((By.XPATH, "//*[@id='remove-from-shelves']//a[contains(.,'adminShelf')]"))
+            )
+        except Exception:
+            pass
         time.sleep(3)
         data = self.sync_kobo()
         self.assertEqual(1, len(data), data)

@@ -102,9 +102,14 @@ def get_Host_IP():
     if os.name != 'nt':
         addrs = psutil.net_if_addrs()
         for ele, key in enumerate(addrs):
-            if key != 'lo':
-                if addrs[key][0][2]:
-                    return addrs[key][0][1]
+            if key in ('lo', 'lo0'):
+                continue
+            addr = addrs[key][0].address if hasattr(addrs[key][0], "address") else addrs[key][0][1]
+            if not addr or addr.startswith("127."):
+                continue
+            return addr
+        print("get_Host_IP: no non-loopback address found; falling back to 127.0.0.1")
+        return '127.0.0.1'
     else:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
