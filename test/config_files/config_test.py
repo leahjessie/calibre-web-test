@@ -24,5 +24,8 @@ TEST_DB = os.path.abspath(os.path.join(base_path, '..', '..', 'Dokumente', 'tüs
 # Boottime in seconds
 BOOT_TIME = 10
 
+# Number of generated cover thumbnails per book (small, medium, large)
+NUM_THUMBNAILS = 3
+
 # Python binary
 PY_BIN = VENV_PYTHON # before: u'/usr/bin/python3'
